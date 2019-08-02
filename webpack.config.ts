@@ -4,7 +4,7 @@ import * as fs from 'fs';
 import { config as asset } from './tasks/config';
 
 /* -----------------------------------
- 
+ *
  * Flags
  *
  * -------------------------------- */
@@ -18,7 +18,7 @@ const RELEASE = process.argv.includes('--release');
  * -------------------------------- */
 
 const config: Configuration = {
-   entry: __dirname + '/src/client.ts',
+   entry: __dirname + '/src/script/client.ts',
    mode: RELEASE ? 'production' : 'development',
    target: 'node',
    externals: fs.readdirSync('node_modules'),

@@ -1,4 +1,4 @@
-import * as log from 'fancy-log';
+import log from 'fancy-log';
 import chalk from 'chalk';
 
 /* -----------------------------------

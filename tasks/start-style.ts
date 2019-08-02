@@ -1,6 +1,6 @@
 import run from './run';
 import clean from './clean';
-import build from './script/build/build';
+import buildStyles from './style/build/style';
 
 /* -----------------------------------
  *
@@ -8,9 +8,9 @@ import build from './script/build/build';
  *
  * -------------------------------- */
 
-async function start() {
+async function startStyle() {
    await run(clean);
-   await run(build);
+   await run(buildStyles);
 }
 
 /* -----------------------------------
@@ -19,4 +19,4 @@ async function start() {
  *
  * -------------------------------- */
 
-export default start;
+export default startStyle;

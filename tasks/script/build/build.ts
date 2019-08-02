@@ -1,6 +1,6 @@
 import webpack from 'webpack';
 import log from 'fancy-log';
-import { config } from '../webpack.config';
+import { config } from '../../../webpack.config';
 
 /* -----------------------------------
  *
@@ -17,6 +17,10 @@ const WATCH = process.argv.includes('--watch');
  * -------------------------------- */
 
 function handler(err: Error, stats: webpack.Stats) {
+   if (err) {
+      log.error(err);
+   }
+
    log.info(
       stats.toString({
          colors: true,
