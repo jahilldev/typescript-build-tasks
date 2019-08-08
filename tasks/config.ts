@@ -11,6 +11,15 @@ interface IPathConfig {
 
 interface IStyleConfig {
    entryPoints: string[];
+   styleDir: string | RegExp;
+   themesDir: string | RegExp;
+}
+
+interface ILintConfig {
+   configFile: string;
+   cache: boolean;
+   formatter: string;
+   syntax: string;
 }
 
 interface ISASSConfig {
@@ -20,6 +29,7 @@ interface ISASSConfig {
 
 interface IConfig {
    path: IPathConfig;
+   lint: ILintConfig;
    style: IStyleConfig;
    scss: ISASSConfig;
 }
@@ -29,11 +39,20 @@ const path: IPathConfig = {
    src: './src/',
 };
 
+const lint: ILintConfig = {
+   configFile: '.stylelintrc.yml',
+   cache: true,
+   formatter: 'verbose',
+   syntax: 'scss',
+};
+
 const style: IStyleConfig = {
    entryPoints: [
       './src/style/index.scss',
       './src/style/themes/**/[^_]*.scss',
    ],
+   styleDir: new RegExp(/^style[s]?$/, 'i'),
+   themesDir: new RegExp(/^theme[s]?$/, 'i'),
 };
 
 const scss: ISASSConfig = {
@@ -41,7 +60,7 @@ const scss: ISASSConfig = {
    outputStyle: 'expanded',
 };
 
-const config: IConfig = { path, style, scss };
+const config: IConfig = { path, lint, style, scss };
 
 /* -----------------------------------
  *

@@ -1,18 +1,8 @@
-import postcss, { Result as PostCSSResult } from 'postcss';
+import postcss from 'postcss';
 import autoprefixer from 'autoprefixer';
 import cssnano from 'cssnano';
-
-interface IPostCSSOptions {
-   from: string;
-   to: string;
-   map: {
-      inline: boolean;
-      prev: string;
-      sourcesContent: boolean;
-   };
-}
-
-const processor = postcss([autoprefixer, cssnano]);
+import log from 'fancy-log';
+import { IStyleOptions } from '../style';
 
 /* -----------------------------------
  *
@@ -20,16 +10,51 @@ const processor = postcss([autoprefixer, cssnano]);
  *
  * -------------------------------- */
 
+const processor = postcss([autoprefixer, cssnano]);
+
 const postcssBuild = async (
-   css: string,
-   postcssOptions: IPostCSSOptions
-): Promise<PostCSSResult> => {
-   return processor.process(css, postcssOptions);
+   options: IStyleOptions
+): Promise<IStyleOptions> => {
+   const { input, output, css, map, flags, config } = options;
+   const postcssOptions = {
+      from: input,
+      to: output,
+      map: {
+         inline: false,
+         prev: map.toString(),
+         sourcesContent: true,
+      },
+   };
+
+   try {
+      const {
+         css: resultCSS,
+         map: resultMap,
+         messages,
+      } = await processor.process(css.toString(), postcssOptions);
+
+      if (messages) {
+         messages.map(message => {
+            log(message);
+         });
+      }
+
+      return {
+         input,
+         output,
+         css: resultCSS,
+         map: resultMap.toString(),
+         flags,
+         config,
+      };
+   } catch (err) {
+      log.error(err);
+   }
 };
 
 /* -----------------------------------
  *
- * Build
+ * Export
  *
  * -------------------------------- */
 

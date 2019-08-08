@@ -1,6 +1,6 @@
 import run from './run';
 import clean from './clean';
-import buildStyles from './style/build/style';
+import buildStyles from './style/style';
 
 /* -----------------------------------
  *
