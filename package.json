@@ -5,11 +5,11 @@
    "main": "index.js",
    "scripts": {
       "start": "run-p -r watch",
-      "build": "ts-node tasks/run start",
+      "build": "ts-node --files tasks/run start",
       "watch": "run-s \"build --watch\"",
       "test": "echo \"Error: no test specified\" && exit 1",
-      "style": "ts-node tasks/run start-style",
-      "watch:test": "ts-node tasks/utility/watch.ts"
+      "style": "ts-node --files tasks/run start-style",
+      "watch:test": "ts-node --files tasks/utility/watch.ts"
    },
    "repository": {
       "type": "git"

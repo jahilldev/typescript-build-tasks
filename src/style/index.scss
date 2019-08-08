@@ -1,7 +1,7 @@
-@debug 'Touches `index.scss`';
-
-@import './component';
+@import './components/component';
 
 .index {
    color: #F00;
 }
+
+@debug 'Touches `index.scss`';
