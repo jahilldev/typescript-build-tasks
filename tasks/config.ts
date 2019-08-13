@@ -15,6 +15,11 @@ interface IStyleConfig {
    themesDir: string | RegExp;
 }
 
+interface IDependencyConfig {
+   prefix: string;
+   extensions: string[];
+}
+
 interface ILintConfig {
    configFile: string;
    cache: boolean;
@@ -27,16 +32,31 @@ interface ISASSConfig {
    outputStyle: 'compact' | 'compressed' | 'expanded' | 'nested';
 }
 
+interface IAutoPrefixerConfig {
+   cascade: boolean;
+}
+
+interface IPostCSSConfig {
+   autoprefixer: IAutoPrefixerConfig;
+}
+
 interface IConfig {
    path: IPathConfig;
+   dependency: IDependencyConfig;
    lint: ILintConfig;
    style: IStyleConfig;
    scss: ISASSConfig;
+   postcss: IPostCSSConfig;
 }
 
 const path: IPathConfig = {
    dist: './dist/',
    src: './src/',
+};
+
+const dependency: IDependencyConfig = {
+   prefix: '_',
+   extensions: ['.scss'],
 };
 
 const lint: ILintConfig = {
@@ -60,7 +80,22 @@ const scss: ISASSConfig = {
    outputStyle: 'expanded',
 };
 
-const config: IConfig = { path, lint, style, scss };
+const autoprefixer: IAutoPrefixerConfig = {
+   cascade: false,
+};
+
+const postcss: IPostCSSConfig = {
+   autoprefixer,
+};
+
+const config: IConfig = {
+   path,
+   dependency,
+   lint,
+   style,
+   scss,
+   postcss,
+};
 
 /* -----------------------------------
  *

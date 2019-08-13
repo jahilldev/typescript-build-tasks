@@ -59,15 +59,15 @@ const sassBuild = async (
       sourceMap: 'DEBUG' in flags && flags.DEBUG,
       functions: {
          '@debug'(msg: any) {
-            log.info('ℹ ' + msg.getValue());
+            log.info(chalk`{blue ℹ SASS Debug} ${msg.getValue()}`);
             return sass.NULL;
          },
          '@error'(msg: any) {
-            log.error('❌ ' + msg.getValue());
+            log.error(chalk`{red ❌ SASS Error} ${msg.getValue()}`);
             return sass.NULL;
          },
          '@warn'(msg: any) {
-            log.warn('⚠ ' + msg.getValue());
+            log.warn(chalk`{yellow ⚠ SASS Warn} ${msg.getValue()}`);
             return sass.NULL;
          },
       },
@@ -79,20 +79,20 @@ const sassBuild = async (
 
       if (stats) {
          log.info(
-            `🛠  Built entry point: ${chalk.yellow(
+            chalk`🛠 Built entry point: {yellow ${
                stats.entry
-            )} in ${chalk.yellow(stats.duration.toString())}ms`
+            }} in {yellow ${stats.duration.toString()}}ms`
          );
       }
 
-      return {
+      Object.assign(options, {
          input: stats.entry,
          output: fileName,
          css: css.toString(),
          map: map.toString(),
-         flags,
-         config,
-      };
+      });
+
+      return options;
    } catch (err) {
       log.error(err);
    }

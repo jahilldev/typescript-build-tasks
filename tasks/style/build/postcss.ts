@@ -15,7 +15,7 @@ const processor = postcss([autoprefixer, cssnano]);
 const postcssBuild = async (
    options: IStyleOptions
 ): Promise<IStyleOptions> => {
-   const { input, output, css, map, flags, config } = options;
+   const { input, output, css, map } = options;
    const postcssOptions = {
       from: input,
       to: output,
@@ -39,14 +39,12 @@ const postcssBuild = async (
          });
       }
 
-      return {
-         input,
-         output,
+      Object.assign(options, {
          css: resultCSS,
          map: resultMap.toString(),
-         flags,
-         config,
-      };
+      });
+
+      return options;
    } catch (err) {
       log.error(err);
    }
