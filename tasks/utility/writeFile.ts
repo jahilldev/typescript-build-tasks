@@ -1,3 +1,4 @@
+import log from 'fancy-log';
 import * as fs from 'fs';
 
 /* -----------------------------------
@@ -8,9 +9,13 @@ import * as fs from 'fs';
 
 const writeFile = (file: any, contents: any) =>
    new Promise((resolve, reject) => {
-      fs.writeFile(file, contents, 'utf8', err =>
-         err ? reject(err) : resolve()
-      );
+      try {
+         fs.writeFile(file, contents, 'utf8', err =>
+            err ? reject(err) : resolve()
+         );
+      } catch (err) {
+         log.error(err);
+      }
    });
 
 /* -----------------------------------

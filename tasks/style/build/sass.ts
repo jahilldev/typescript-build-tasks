@@ -1,7 +1,6 @@
 import sass, { Result as SASSResult } from 'node-sass';
 import chalk from 'chalk';
-import log from 'fancy-log';
-import { IStyleOptions } from '../style';
+import { IStyleOptions } from '../style.d';
 
 /* -----------------------------------
  *
@@ -28,7 +27,7 @@ interface IResult extends SASSResult {
  *
  * -------------------------------- */
 
-const sassRender = (options: ISASSOptions): Promise<IResult> => {
+function sassRender(options: ISASSOptions): Promise<IResult> {
    return new Promise((resolve, reject) => {
       sass.render(options, function(err, result) {
          err
@@ -39,7 +38,7 @@ const sassRender = (options: ISASSOptions): Promise<IResult> => {
               });
       });
    });
-};
+}
 
 /* -----------------------------------
  *
@@ -47,10 +46,11 @@ const sassRender = (options: ISASSOptions): Promise<IResult> => {
  *
  * -------------------------------- */
 
-const sassBuild = async (
+async function sassBuild(
    options: IStyleOptions
-): Promise<IStyleOptions> => {
-   const { input, output, flags, config } = options;
+): Promise<IStyleOptions> {
+   const { input, output, flags, config, contextLog } = options;
+
    const sassOptions = {
       file: input,
       includePaths: config.scss.includePaths,
@@ -59,15 +59,15 @@ const sassBuild = async (
       sourceMap: 'DEBUG' in flags && flags.DEBUG,
       functions: {
          '@debug'(msg: any) {
-            log.info(chalk`{blue ℹ SASS Debug} ${msg.getValue()}`);
+            contextLog(chalk`{blue ℹ SASS Debug} ${msg.getValue()}`);
             return sass.NULL;
          },
          '@error'(msg: any) {
-            log.error(chalk`{red ❌ SASS Error} ${msg.getValue()}`);
+            contextLog(chalk`{red ❌ SASS Error} ${msg.getValue()}`);
             return sass.NULL;
          },
          '@warn'(msg: any) {
-            log.warn(chalk`{yellow ⚠ SASS Warn} ${msg.getValue()}`);
+            contextLog(chalk`{yellow ⚠ SASS Warn} ${msg.getValue()}`);
             return sass.NULL;
          },
       },
@@ -78,7 +78,7 @@ const sassBuild = async (
       const { css, stats, map, fileName } = result;
 
       if (stats) {
-         log.info(
+         contextLog(
             chalk`🛠 Built entry point: {yellow ${
                stats.entry
             }} in {yellow ${stats.duration.toString()}}ms`
@@ -87,16 +87,16 @@ const sassBuild = async (
 
       Object.assign(options, {
          input: stats.entry,
-         output: fileName,
+         fileName,
          css: css.toString(),
-         map: map.toString(),
+         map: map && map.toString(),
       });
 
       return options;
    } catch (err) {
-      log.error(err);
+      contextLog(err);
    }
-};
+}
 
 /* -----------------------------------
  *

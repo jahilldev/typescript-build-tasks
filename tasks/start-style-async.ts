@@ -1,6 +1,5 @@
 import run from './run';
-import clean from './clean';
-import targetedStyle from './style/targeted';
+import asyncStyle from './style/async';
 
 /* -----------------------------------
  *
@@ -8,9 +7,8 @@ import targetedStyle from './style/targeted';
  *
  * -------------------------------- */
 
-async function startStyle() {
-   await run(clean);
-   await run(targetedStyle);
+async function startAsyncStyle() {
+   await run(asyncStyle);
 }
 
 /* -----------------------------------
@@ -19,4 +17,4 @@ async function startStyle() {
  *
  * -------------------------------- */
 
-export default startStyle;
+export default startAsyncStyle;

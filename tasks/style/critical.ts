@@ -25,11 +25,11 @@ const flags: IFlags = {
  * -------------------------------- */
 
 const baseStyleOptions: IBaseStyleOptions = {
-   target: 'default',
+   target: 'critical',
    flags,
    config,
    get contextLog() {
-      const label = chalk`{black.bold.bgWhite  ${this.target.toUpperCase()} }`;
+      const label = chalk`{black.bold.bgMagenta  ${this.target.toUpperCase()} } `;
 
       return (...messages: any[]) => {
          for (const message of messages) {
@@ -41,11 +41,11 @@ const baseStyleOptions: IBaseStyleOptions = {
 
 /* -----------------------------------
  *
- * Style
+ * Critical
  *
  * -------------------------------- */
 
-const defaultStyle = () =>
+const criticalStyle = () =>
    new Promise(async resolve => {
       const { contextLog } = baseStyleOptions;
       try {
@@ -80,4 +80,4 @@ const defaultStyle = () =>
  *
  * -------------------------------- */
 
-export default defaultStyle;
+export default criticalStyle;

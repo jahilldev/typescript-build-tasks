@@ -1,6 +1,5 @@
-import stylelint from 'stylelint';
-import log from 'fancy-log';
-import { IStyleOptions } from '../style';
+import stylelint, { LinterOptions } from 'stylelint';
+import { IStyleOptions } from '../style.d';
 
 /* -----------------------------------
  *
@@ -8,19 +7,21 @@ import { IStyleOptions } from '../style';
  *
  * -------------------------------- */
 
-const styleLint = async (
+const lint = async (
    options: IStyleOptions
 ): Promise<IStyleOptions> => {
+   const { dependencies, config, contextLog } = options;
+
    try {
-      const { dependencies } = options;
+      const lintOptions = {
+         ...config.lint,
+         files: [...dependencies.keys()],
+      } as LinterOptions;
 
-      const styleLintOptions = options.config.lint;
-      styleLintOptions.files = Object.keys(dependencies);
-
-      const result = await stylelint.lint(styleLintOptions);
+      const result = await stylelint.lint(lintOptions);
 
       if (result.output) {
-         log.info(result.output);
+         contextLog(result.output);
       }
 
       if (!result.errored) {
@@ -31,7 +32,7 @@ const styleLint = async (
          'Stylelint found errors, please resolve errors listed above.'
       );
    } catch (err) {
-      log.error(err);
+      contextLog(err);
    }
 };
 
@@ -41,4 +42,4 @@ const styleLint = async (
  *
  * -------------------------------- */
 
-export default styleLint;
+export default lint;

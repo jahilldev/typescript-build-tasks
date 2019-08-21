@@ -1,22 +1,12 @@
 import * as fs from 'fs';
 import postcss, { ResultMessage } from 'postcss';
 import atImport from 'postcss-easy-import';
-import log from 'fancy-log';
 import chalk from 'chalk';
-import { IStyleOptions } from '../style';
-
-/* -----------------------------------
- *
- * Interfaces
- *
- * -------------------------------- */
-
-export interface IImportDependencies {
-   [file: string]: {
-      imports: string[];
-      importedBy: string[];
-   };
-}
+import {
+   ContextLogger,
+   DependencyGraph,
+   IStyleOptions,
+} from '../style.d';
 
 /* -----------------------------------
  *
@@ -24,37 +14,40 @@ export interface IImportDependencies {
  *
  * -------------------------------- */
 
-const dependencyHandler = (
+function dependencyHandler(
    message: ResultMessage,
-   graph: IImportDependencies
-) => {
-   if (!(message.file in graph)) {
-      graph[message.file] = {
+   graph: DependencyGraph
+) {
+   if (!graph.has(message.file)) {
+      graph.set(message.file, {
          imports: [],
          importedBy: [],
-      };
+      });
    }
 
-   if (!graph[message.file].importedBy.includes(message.parent)) {
-      graph[message.file].importedBy.push(message.parent);
+   if (!graph.get(message.file).importedBy.includes(message.parent)) {
+      graph.get(message.file).importedBy.push(message.parent);
    }
 
-   if (message.parent in graph) {
-      graph[message.parent].imports.push(message.file);
+   if (graph.has(message.parent)) {
+      graph.get(message.parent).imports.push(message.file);
    } else {
-      graph[message.parent] = {
+      graph.set(message.parent, {
          imports: [],
          importedBy: [],
-      };
+      });
    }
 
-   if (!graph[message.parent].imports.includes(message.file)) {
-      graph[message.parent].imports.push(message.file);
+   if (!graph.get(message.parent).imports.includes(message.file)) {
+      graph.get(message.parent).imports.push(message.file);
    }
-};
+}
 
-const warningHandler = (message: ResultMessage) => {
-   log.warn(`
+function warningHandler(
+   message: ResultMessage,
+   contextLog: ContextLogger
+) {
+   contextLog(`
 ${chalk.bgYellow.black(
    '⚠  ' + message.type.toUpperCase()
 )} from ${chalk.green(message.plugin)}:
@@ -66,10 +59,13 @@ ${chalk.bgYellow.black(
       ${chalk.bold.blueBright('column:')} ${message.column}
    ${chalk.bold.blue('message:')} ${message.text}
    `);
-};
+}
 
-const errorHandler = (message: ResultMessage) => {
-   log.error(`
+function errorHandler(
+   message: ResultMessage,
+   contextLog: ContextLogger
+) {
+   contextLog(`
 ${chalk.bgRed.black(
    '❌  ' + message.type.toUpperCase()
 )} from ${chalk.green(message.plugin)}:
@@ -81,10 +77,22 @@ ${chalk.bgRed.black(
       ${chalk.bold.blueBright('column:')} ${message.column}
    ${chalk.bold.blue('message:')} ${message.text}
    `);
-};
+}
 
-export const postCSSMessageHandler = (messages: ResultMessage[]) => {
-   const importDependencies: IImportDependencies = {};
+export function postCSSMessageHandler(
+   input: string,
+   messages: ResultMessage[],
+   contextLog: ContextLogger
+) {
+   const importDependencies: DependencyGraph = new Map([
+      [
+         input,
+         {
+            imports: [],
+            importedBy: [],
+         },
+      ],
+   ]);
 
    for (const message of messages) {
       switch (message.type) {
@@ -92,10 +100,10 @@ export const postCSSMessageHandler = (messages: ResultMessage[]) => {
             dependencyHandler(message, importDependencies);
             break;
          case 'warning':
-            warningHandler(message);
+            warningHandler(message, contextLog);
             break;
          case 'error':
-            errorHandler(message);
+            errorHandler(message, contextLog);
             process.exit(1);
             break;
          default:
@@ -106,26 +114,35 @@ export const postCSSMessageHandler = (messages: ResultMessage[]) => {
    }
 
    return importDependencies;
-};
+}
 
-const dependencyGraph = async (
+async function dependencyGraph(
    options: IStyleOptions
-): Promise<IStyleOptions> => {
-   const { input, output, config } = options;
-   const postcssOptions = {
-      from: input,
-      to: output,
-   };
-   const scssEntry = fs.readFileSync(input, 'utf8');
+): Promise<IStyleOptions> {
+   const { input, output, config, contextLog } = options;
 
-   const { messages } = await postcss()
-      .use(atImport(config.dependency))
-      .process(scssEntry, postcssOptions);
+   try {
+      const postcssOptions = {
+         from: input,
+         to: output,
+      };
+      const scssEntry = fs.readFileSync(input, 'utf8');
 
-   options.dependencies = messages && postCSSMessageHandler(messages);
+      const { messages } = await postcss()
+         .use(atImport(config.dependency))
+         .process(scssEntry, postcssOptions);
 
-   return options;
-};
+      options.dependencies = postCSSMessageHandler(
+         input,
+         messages,
+         contextLog
+      );
+
+      return options;
+   } catch (err) {
+      contextLog(err);
+   }
+}
 
 /* -----------------------------------
  *

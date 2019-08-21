@@ -5,10 +5,14 @@
    "main": "index.js",
    "scripts": {
       "start": "run-p -r watch",
+      "clean": "ts-node --files tasks/run start-clean",
       "build": "ts-node --files tasks/run start",
       "watch": "run-s \"build --watch\"",
       "test": "echo \"Error: no test specified\" && exit 1",
       "style": "ts-node --files tasks/run start-style",
+      "style:target:async": "ts-node --files tasks/run start-style-async",
+      "style:target:critical": "ts-node --files tasks/run start-style-critical",
+      "style:target:default": "ts-node --files tasks/run start-style-default",
       "watch:test": "ts-node --files tasks/utility/watch.ts"
    },
    "repository": {

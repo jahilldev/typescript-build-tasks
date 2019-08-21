@@ -20,6 +20,13 @@ interface IDependencyConfig {
    extensions: string[];
 }
 
+interface ITargetConfig {
+   targetDir: string;
+   asyncGlob: string;
+   criticalGlob: string;
+   criticalFileExtension: string;
+}
+
 interface ILintConfig {
    configFile: string;
    cache: boolean;
@@ -43,6 +50,7 @@ interface IPostCSSConfig {
 interface IConfig {
    path: IPathConfig;
    dependency: IDependencyConfig;
+   target?: ITargetConfig;
    lint: ILintConfig;
    style: IStyleConfig;
    scss: ISASSConfig;
@@ -57,6 +65,13 @@ const path: IPathConfig = {
 const dependency: IDependencyConfig = {
    prefix: '_',
    extensions: ['.scss'],
+};
+
+const target: ITargetConfig = {
+   targetDir: 'client',
+   asyncGlob: './async/[^_]*.scss',
+   criticalGlob: './critical/[^_]*.scss',
+   criticalFileExtension: 'cshtml',
 };
 
 const lint: ILintConfig = {
@@ -91,6 +106,7 @@ const postcss: IPostCSSConfig = {
 const config: IConfig = {
    path,
    dependency,
+   target,
    lint,
    style,
    scss,
@@ -103,4 +119,4 @@ const config: IConfig = {
  *
  * -------------------------------- */
 
-export { config };
+export { config, IConfig };

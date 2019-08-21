@@ -1,8 +1,8 @@
+import path from 'path';
 import postcss from 'postcss';
 import autoprefixer from 'autoprefixer';
 import cssnano from 'cssnano';
-import log from 'fancy-log';
-import { IStyleOptions } from '../style';
+import { IStyleOptions } from '../style.d';
 
 /* -----------------------------------
  *
@@ -12,18 +12,30 @@ import { IStyleOptions } from '../style';
 
 const processor = postcss([autoprefixer, cssnano]);
 
-const postcssBuild = async (
+async function postcssBuild(
    options: IStyleOptions
-): Promise<IStyleOptions> => {
-   const { input, output, css, map } = options;
+): Promise<IStyleOptions> {
+   const {
+      input,
+      output,
+      css,
+      map,
+      target,
+      flags,
+      contextLog,
+   } = options;
+   const { dir, name } = path.parse(output);
+   const mapFileName = `${path.join(dir, name)}.${target}.css.map`;
    const postcssOptions = {
       from: input,
       to: output,
-      map: {
-         inline: false,
-         prev: map.toString(),
-         sourcesContent: true,
-      },
+      map: 'DEBUG' in flags &&
+         flags.DEBUG && {
+            inline: false,
+            prev: map && map.toString(),
+            sourcesContent: true,
+            annotation: mapFileName,
+         },
    };
 
    try {
@@ -35,20 +47,20 @@ const postcssBuild = async (
 
       if (messages) {
          messages.map(message => {
-            log(message);
+            contextLog(message);
          });
       }
 
       Object.assign(options, {
          css: resultCSS,
-         map: resultMap.toString(),
+         map: resultMap && resultMap.toString(),
       });
 
       return options;
    } catch (err) {
-      log.error(err);
+      contextLog(err);
    }
-};
+}
 
 /* -----------------------------------
  *
