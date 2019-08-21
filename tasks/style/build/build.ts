@@ -33,7 +33,9 @@ async function buildStyles(options: IStyleOptions) {
       writeFile(result.output, result.css);
 
       if (result.map) {
-         const { dir, name } = path.parse(result.output);
+         const { dir, name } = path.parse(
+            path.relative(process.cwd(), result.output)
+         );
 
          writeFile(
             `${path.join(dir, name)}.${target}.css.map`,

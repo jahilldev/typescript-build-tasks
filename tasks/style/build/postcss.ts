@@ -24,7 +24,9 @@ async function postcssBuild(
       flags,
       contextLog,
    } = options;
-   const { dir, name } = path.parse(output);
+   const { dir, name } = path.parse(
+      path.relative(process.cwd(), output)
+   );
    const mapFileName = `${path.join(dir, name)}.${target}.css.map`;
    const postcssOptions = {
       from: input,
