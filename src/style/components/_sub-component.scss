@@ -1,5 +1,9 @@
+$variable: #F99;
+
 .sub-component {
    box-decoration-break: clone;
+   display: inline-block;
+   caret-color: lighten($variable, .1);
 }
 
 @debug 'Touches `sub-component.scss`';

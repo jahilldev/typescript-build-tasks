@@ -45,9 +45,10 @@ const baseStyleOptions: IBaseStyleOptions = {
  *
  * -------------------------------- */
 
-const criticalStyle = () =>
-   new Promise(async resolve => {
+function criticalStyle() {
+   return new Promise(async (resolve, reject) => {
       const { contextLog } = baseStyleOptions;
+
       try {
          const builds: Builds = new Map();
          const entryPoints = await targets(baseStyleOptions);
@@ -55,6 +56,7 @@ const criticalStyle = () =>
          if (entryPoints.size) {
             for (const [entryPoint, options] of entryPoints) {
                const result = await buildStyles(options);
+
                builds.set(entryPoint, {
                   ...result,
                   build: buildStyles,
@@ -70,9 +72,10 @@ const criticalStyle = () =>
             });
          }
       } catch (err) {
-         return contextLog(err);
+         reject(contextLog(err));
       }
    });
+}
 
 /* -----------------------------------
  *

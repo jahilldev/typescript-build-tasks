@@ -91,7 +91,7 @@ const style: IStyleConfig = {
 };
 
 const scss: ISASSConfig = {
-   includePaths: ['./src/style/**/*.scss'],
+   includePaths: ['./src/style/'],
    outputStyle: 'expanded',
 };
 

@@ -9,9 +9,9 @@ import { IBaseStyleOptions, EntryPointOptions } from '../style.d';
  *
  * -------------------------------- */
 
-const targets = async (
+async function targets(
    options: IBaseStyleOptions
-): Promise<EntryPointOptions> => {
+): Promise<EntryPointOptions> {
    const entryPointMap: EntryPointOptions = new Map();
    const { target, config } = options;
    let entryGlobs: string[];
@@ -20,6 +20,7 @@ const targets = async (
       case 'critical':
          entryGlobs = config.style.entryPoints.map(glob => {
             const entryDir = path.parse(glob).dir;
+
             return path.posix.join(
                entryDir,
                config.target.targetDir,
@@ -30,6 +31,7 @@ const targets = async (
       case 'async':
          entryGlobs = config.style.entryPoints.map(glob => {
             const entryDir = path.parse(glob).dir;
+
             return path.posix.join(
                entryDir,
                config.target.targetDir,
@@ -59,7 +61,7 @@ const targets = async (
    }
 
    return entryPointMap;
-};
+}
 
 /* -----------------------------------
  *

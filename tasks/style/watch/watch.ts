@@ -62,8 +62,11 @@ chokidar
  * -------------------------------- */
 
 async function styleWatch(builds: Builds) {
-   for (const build of builds) {
-      watchedBuilds.set(...build);
+   for (const [key, build] of builds) {
+      build.contextLog(
+         chalk`⌚ Watching entry point: {yellow ${key}} for changes`
+      );
+      watchedBuilds.set(key, build);
    }
 }
 

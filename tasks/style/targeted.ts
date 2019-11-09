@@ -9,16 +9,17 @@ import asyncStyle from './async';
  *
  * -------------------------------- */
 
-const targetedStyle = () =>
-   new Promise(async (resolve, reject) => {
-      try {
-         Promise.all([defaultStyle(), criticalStyle(), asyncStyle()]);
-      } catch (err) {
-         reject(log.error(err));
-      } finally {
-         resolve();
-      }
-   });
+async function targetedStyle() {
+   try {
+      return await Promise.all([
+         defaultStyle(),
+         criticalStyle(),
+         asyncStyle(),
+      ]);
+   } catch (err) {
+      return log.error(err);
+   }
+}
 
 /* -----------------------------------
  *

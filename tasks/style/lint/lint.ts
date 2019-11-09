@@ -7,9 +7,7 @@ import { IStyleOptions } from '../style.d';
  *
  * -------------------------------- */
 
-const lint = async (
-   options: IStyleOptions
-): Promise<IStyleOptions> => {
+async function lint(options: IStyleOptions): Promise<IStyleOptions> {
    const { dependencies, config, contextLog } = options;
 
    try {
@@ -34,7 +32,7 @@ const lint = async (
    } catch (err) {
       contextLog(err);
    }
-};
+}
 
 /* -----------------------------------
  *

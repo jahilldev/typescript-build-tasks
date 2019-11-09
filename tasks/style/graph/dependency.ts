@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import postcss, { ResultMessage } from 'postcss';
+import scss from 'postcss-scss';
 import atImport from 'postcss-easy-import';
 import chalk from 'chalk';
 import {
@@ -125,6 +126,7 @@ async function dependencyGraph(
       const postcssOptions = {
          from: input,
          to: output,
+         syntax: scss,
       };
       const scssEntry = fs.readFileSync(input, 'utf8');
 
