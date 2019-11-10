@@ -59,7 +59,7 @@ async function sassBuild(
       sourceMap: 'DEBUG' in flags && flags.DEBUG,
       functions: {
          '@debug'(msg: any) {
-            contextLog(chalk`{blue ℹ SASS Debug} ${msg.getValue()}`);
+            contextLog(chalk`{blue ℹ  SASS Debug} ${msg.getValue()}`);
             return sass.NULL;
          },
          '@error'(msg: any) {
@@ -79,7 +79,7 @@ async function sassBuild(
 
       if (stats) {
          contextLog(
-            chalk`🛠 Built entry point: {yellow ${
+            chalk`🛠  Built entry point: {yellow ${
                stats.entry
             }} in {yellow ${stats.duration.toString()}}ms`
          );

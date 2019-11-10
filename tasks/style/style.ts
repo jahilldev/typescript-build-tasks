@@ -15,6 +15,7 @@ import { IFlags, IBaseStyleOptions, Builds } from './style.d';
 const flags: IFlags = {
    DEBUG: process.argv.includes('--debug'),
    LINT: process.argv.includes('--lint'),
+   RELEASE: process.argv.includes('--release'),
    WATCH: process.argv.includes('--watch'),
 };
 

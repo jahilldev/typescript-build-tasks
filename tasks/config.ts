@@ -1,6 +1,11 @@
+import { Plugin } from 'postcss';
+import autoprefixer from 'autoprefixer';
+import cssnano from 'cssnano';
+import hash from 'postcss-hash';
+
 /* -----------------------------------
  *
- * Config
+ * Interfaces
  *
  * -------------------------------- */
 
@@ -39,12 +44,17 @@ interface ISASSConfig {
    outputStyle: 'compact' | 'compressed' | 'expanded' | 'nested';
 }
 
-interface IAutoPrefixerConfig {
-   cascade: boolean;
+interface IPostCSSPluginConfig {
+   /* TODO: figure out a signature for this that makes sense */
+   transformer: any;
+   conditionals?: Set<'DEBUG' | 'LINT' | 'RELEASE' | 'WATCH'>;
+   options: {
+      [option: string]: any;
+   };
 }
 
 interface IPostCSSConfig {
-   autoprefixer: IAutoPrefixerConfig;
+   plugins: IPostCSSPluginConfig[];
 }
 
 interface IConfig {
@@ -56,6 +66,12 @@ interface IConfig {
    scss: ISASSConfig;
    postcss: IPostCSSConfig;
 }
+
+/* -----------------------------------
+ *
+ * Config
+ *
+ * -------------------------------- */
 
 const path: IPathConfig = {
    dist: './dist/',
@@ -95,12 +111,30 @@ const scss: ISASSConfig = {
    outputStyle: 'expanded',
 };
 
-const autoprefixer: IAutoPrefixerConfig = {
-   cascade: false,
-};
-
 const postcss: IPostCSSConfig = {
-   autoprefixer,
+   plugins: [
+      {
+         transformer: autoprefixer,
+         options: {
+            cascade: false,
+         },
+      },
+      {
+         transformer: cssnano,
+         options: {
+            preset: ['default'],
+         },
+      },
+      {
+         transformer: hash,
+         conditionals: new Set(['RELEASE']),
+         options: {
+            algorithm: 'md5',
+            trim: 10,
+            manifest: './dist/assets.json',
+         },
+      },
+   ],
 };
 
 const config: IConfig = {

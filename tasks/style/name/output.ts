@@ -42,12 +42,14 @@ function nameOutput(options: IStyleOptions): string {
 
       switch (target) {
          case 'critical':
-            fileName = `${path.parse(relativeEntryPath).name}.${
-               config.target.criticalFileExtension
-            }`;
+            fileName = `${
+               path.parse(relativeEntryPath).name
+            }.${target}.${config.target.criticalFileExtension}`;
             break;
          case 'async':
-            fileName = `${path.parse(relativeEntryPath).name}.css`;
+            fileName = `${
+               path.parse(relativeEntryPath).name
+            }.${target}.css`;
             break;
          default:
             fileName = 'style.css';

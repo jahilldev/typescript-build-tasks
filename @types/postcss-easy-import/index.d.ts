@@ -1,6 +1,7 @@
 declare module 'postcss-easy-import' {
    import { Plugin } from 'postcss';
 
+   // tslint:disable-next-line interface-name
    interface Options {
       prefix: string | boolean;
       extensions: string | string[];

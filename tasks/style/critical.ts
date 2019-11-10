@@ -15,6 +15,7 @@ import { IFlags, IBaseStyleOptions, Builds } from './style.d';
 const flags: IFlags = {
    DEBUG: process.argv.includes('--debug'),
    LINT: process.argv.includes('--lint'),
+   RELEASE: process.argv.includes('--release'),
    WATCH: process.argv.includes('--watch'),
 };
 
@@ -29,7 +30,7 @@ const baseStyleOptions: IBaseStyleOptions = {
    flags,
    config,
    get contextLog() {
-      const label = chalk`{black.bold.bgMagenta  ${this.target.toUpperCase()} } `;
+      const label = chalk`{black.bold.bgMagenta  ${this.target.toUpperCase()} }`;
 
       return (...messages: any[]) => {
          for (const message of messages) {

@@ -48,17 +48,16 @@ function warningHandler(
    message: ResultMessage,
    contextLog: ContextLogger
 ) {
-   contextLog(`
-${chalk.bgYellow.black(
-   '⚠  ' + message.type.toUpperCase()
-)} from ${chalk.green(message.plugin)}:
-   ${chalk.bold.blue('location:')}
-      ${chalk.bold.blueBright('file:')} ${chalk.yellow(
-      message.node.source.input.file
-   )}
-      ${chalk.bold.blueBright('line:')} ${message.line}
-      ${chalk.bold.blueBright('column:')} ${message.column}
-   ${chalk.bold.blue('message:')} ${message.text}
+   contextLog(chalk`{bgYellow.black ⚠ ${message.type.toUpperCase()}} from {green ${
+      message.plugin
+   }}:
+   {bold.blue location:}
+      {bold.blueBright file:} {yellow ${
+         message.node.source.input.file
+      }}
+      {bold.blueBright line:} ${message.line}
+      {bold.blueBright column)} ${message.column}
+   {bold.blue message:} ${message.text}
    `);
 }
 
@@ -66,17 +65,16 @@ function errorHandler(
    message: ResultMessage,
    contextLog: ContextLogger
 ) {
-   contextLog(`
-${chalk.bgRed.black(
-   '❌  ' + message.type.toUpperCase()
-)} from ${chalk.green(message.plugin)}:
-   ${chalk.bold.blue('location:')}
-      ${chalk.bold.blueBright('file:')} ${chalk.yellow(
-      message.node.source.input.file
-   )}
-      ${chalk.bold.blueBright('line:')} ${message.line}
-      ${chalk.bold.blueBright('column:')} ${message.column}
-   ${chalk.bold.blue('message:')} ${message.text}
+   contextLog(`{bgRed.black ❌ ${message.type.toUpperCase()} from {green ${
+      message.plugin
+   }}:
+   {bold.blue location:}
+      {bold.blueBright file:} {yellow ${
+         message.node.source.input.file
+      }}
+      {bold.blueBright line:} ${message.line}
+      {bold.blueBright column:} ${message.column}
+   {bold.blue message:} ${message.text}
    `);
 }
 

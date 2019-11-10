@@ -1,7 +1,4 @@
-import path from 'path';
 import postcss from 'postcss';
-import autoprefixer from 'autoprefixer';
-import cssnano from 'cssnano';
 import { IStyleOptions } from '../style.d';
 
 /* -----------------------------------
@@ -9,8 +6,6 @@ import { IStyleOptions } from '../style.d';
  * Build
  *
  * -------------------------------- */
-
-const processor = postcss([autoprefixer, cssnano]);
 
 async function postcssBuild(
    options: IStyleOptions
@@ -20,14 +15,10 @@ async function postcssBuild(
       output,
       css,
       map,
-      target,
       flags,
       contextLog,
+      config,
    } = options;
-   const { dir, name } = path.parse(
-      path.relative(process.cwd(), output)
-   );
-   const mapFileName = `${path.join(dir, name)}.${target}.css.map`;
    const postcssOptions = {
       from: input,
       to: output,
@@ -36,15 +27,38 @@ async function postcssBuild(
             inline: false,
             prev: map && map.toString(),
             sourcesContent: true,
-            annotation: mapFileName,
          },
    };
+
+   const plugins = config.postcss.plugins.reduce(
+      (pluginList, currentPlugin) => {
+         const {
+            transformer,
+            options: pluginOptions,
+         } = currentPlugin;
+
+         if (
+            !currentPlugin.hasOwnProperty('conditionals') ||
+            Array.from(currentPlugin.conditionals).every(
+               condition => condition in flags && flags[condition]
+            )
+         ) {
+            pluginList.push(transformer(pluginOptions));
+         }
+
+         return pluginList;
+      },
+      []
+   );
+
+   const processor = postcss(plugins);
 
    try {
       const {
          css: resultCSS,
          map: resultMap,
          messages,
+         opts: { to: fileName },
       } = await processor.process(css.toString(), postcssOptions);
 
       if (messages) {
@@ -55,6 +69,7 @@ async function postcssBuild(
 
       Object.assign(options, {
          css: resultCSS,
+         fileName,
          map: resultMap && resultMap.toString(),
       });
 
