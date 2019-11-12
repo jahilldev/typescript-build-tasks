@@ -65,7 +65,7 @@ function errorHandler(
    message: ResultMessage,
    contextLog: ContextLogger
 ) {
-   contextLog(`{bgRed.black ❌ ${message.type.toUpperCase()} from {green ${
+   contextLog(chalk`{bgRed.black ❌ ${message.type.toUpperCase()} from {green ${
       message.plugin
    }}:
    {bold.blue location:}
@@ -103,7 +103,7 @@ export function postCSSMessageHandler(
             break;
          case 'error':
             errorHandler(message, contextLog);
-            process.exit(1);
+            process.exitCode = 1;
             break;
          default:
             throw Error(

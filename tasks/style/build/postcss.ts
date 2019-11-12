@@ -10,24 +10,15 @@ import { IStyleOptions } from '../style.d';
 async function postcssBuild(
    options: IStyleOptions
 ): Promise<IStyleOptions> {
-   const {
-      input,
-      output,
-      css,
-      map,
-      flags,
-      contextLog,
-      config,
-   } = options;
+   const { input, output, css, map, contextLog, config } = options;
    const postcssOptions = {
       from: input,
       to: output,
-      map: 'DEBUG' in flags &&
-         flags.DEBUG && {
-            inline: false,
-            prev: map && map.toString(),
-            sourcesContent: true,
-         },
+      map: process.argv.includes('--debug') && {
+         inline: false,
+         prev: map && map.toString(),
+         sourcesContent: true,
+      },
    };
 
    const plugins = config.postcss.plugins.reduce(
@@ -39,8 +30,8 @@ async function postcssBuild(
 
          if (
             !currentPlugin.hasOwnProperty('conditionals') ||
-            Array.from(currentPlugin.conditionals).every(
-               condition => condition in flags && flags[condition]
+            Array.from(currentPlugin.conditionals).every(condition =>
+               process.argv.includes(`--${condition.toLowerCase()}`)
             )
          ) {
             pluginList.push(transformer(pluginOptions));

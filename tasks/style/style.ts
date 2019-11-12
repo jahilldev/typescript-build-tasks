@@ -1,44 +1,86 @@
 import chalk from 'chalk';
 import log from 'fancy-log';
+import { IConfig } from '../config';
 import targets from './targeted/targets';
 import buildStyles from './build/build';
 import styleWatch from './watch/watch';
-import { config } from '../config';
-import { IFlags, IBaseStyleOptions, Builds } from './style.d';
+import { IBaseStyleOptions, ITarget, Builds } from './style.d';
 
 /* -----------------------------------
  *
- * Flags
+ * Default Target
  *
  * -------------------------------- */
 
-const flags: IFlags = {
-   DEBUG: process.argv.includes('--debug'),
-   LINT: process.argv.includes('--lint'),
-   RELEASE: process.argv.includes('--release'),
-   WATCH: process.argv.includes('--watch'),
+const defaultTarget: ITarget = {
+   variety: 'default',
+   colour: 'black',
+   background: 'bgWhite',
 };
 
 /* -----------------------------------
  *
- * Base Style Options
+ * Critical Target
  *
  * -------------------------------- */
 
-const baseStyleOptions: IBaseStyleOptions = {
-   target: 'default',
-   flags,
-   config,
-   get contextLog() {
-      const label = chalk`{black.bold.bgWhite  ${this.target.toUpperCase()} }`;
+const criticalTarget: ITarget = {
+   variety: 'critical',
+   colour: 'black',
+   background: 'bgMagenta',
+};
 
-      return (...messages: any[]) => {
-         for (const message of messages) {
-            log(label, message);
+/* -----------------------------------
+ *
+ * Async Target
+ *
+ * -------------------------------- */
+
+const asyncTarget: ITarget = {
+   variety: 'async',
+   colour: 'black',
+   background: 'bgCyan',
+};
+
+/* -----------------------------------
+ *
+ * Style Builder
+ *
+ * -------------------------------- */
+
+async function styleBuilder(styleOptions: IBaseStyleOptions) {
+   const { contextLog } = styleOptions;
+   const builds: Builds = new Map();
+
+   try {
+      const entryPoints = await targets(styleOptions);
+
+      if (entryPoints.size) {
+         for (const [entryPoint, options] of entryPoints) {
+            const result = await buildStyles(options);
+
+            builds.set(entryPoint, {
+               ...result,
+               build: buildStyles,
+            });
          }
-      };
-   },
-};
+      }
+   } catch (err) {
+      contextLog(err);
+   }
+
+   return Promise.all(builds)
+      .catch(err => {
+         contextLog(err);
+      })
+      .then(() => {
+         if (process.argv.includes('--watch')) {
+            styleWatch(builds);
+         } else {
+            process.exitCode = 0;
+         }
+      });
+}
 
 /* -----------------------------------
  *
@@ -46,37 +88,27 @@ const baseStyleOptions: IBaseStyleOptions = {
  *
  * -------------------------------- */
 
-function defaultStyle() {
-   return new Promise(async (resolve, reject) => {
-      const { contextLog } = baseStyleOptions;
+function style(target: ITarget) {
+   return (config: IConfig) =>
+      styleBuilder({
+         config,
+         target,
+         get contextLog() {
+            const { background, colour, variety } = this.target;
+            const label = chalk`{${colour}.bold.${background}  ${variety.toUpperCase()} }`;
 
-      try {
-         const builds: Builds = new Map();
-         const entryPoints = await targets(baseStyleOptions);
-
-         if (entryPoints.size) {
-            for (const [entryPoint, options] of entryPoints) {
-               const result = await buildStyles(options);
-
-               builds.set(entryPoint, {
-                  ...result,
-                  build: buildStyles,
-               });
-            }
-
-            Promise.all(builds).then(() => {
-               if ('WATCH' in flags && flags.WATCH) {
-                  styleWatch(builds);
+            return (...messages: any[]) => {
+               for (const message of messages) {
+                  log(label, message);
                }
-
-               resolve();
-            });
-         }
-      } catch (err) {
-         reject(contextLog(err));
-      }
-   });
+            };
+         },
+      });
 }
+
+const asyncStyle = style(asyncTarget);
+const criticalStyle = style(criticalTarget);
+const defaultStyle = style(defaultTarget);
 
 /* -----------------------------------
  *
@@ -84,4 +116,4 @@ function defaultStyle() {
  *
  * -------------------------------- */
 
-export default defaultStyle;
+export { asyncStyle, criticalStyle, defaultStyle };

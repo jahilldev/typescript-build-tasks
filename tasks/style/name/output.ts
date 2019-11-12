@@ -14,7 +14,7 @@ import { IStyleOptions } from '../style.d';
  * -------------------------------- */
 
 function nameOutput(options: IStyleOptions): string {
-   const { input, target, config, contextLog } = options;
+   const { config, contextLog, input, target } = options;
 
    try {
       const sourcePath = path.resolve(process.cwd(), config.path.src);
@@ -31,25 +31,25 @@ function nameOutput(options: IStyleOptions): string {
          new RegExp(/\S+/, 'i'),
       ];
 
-      if (target !== 'default') {
-         stylePathArray.push(config.target.targetDir, target);
-         themePathArray.push(config.target.targetDir, target);
+      if (target.variety !== 'default') {
+         stylePathArray.push(config.target.targetDir, target.variety);
+         themePathArray.push(config.target.targetDir, target.variety);
       }
 
       const stylePath = constructCompareTuples(stylePathArray);
       const themePath = constructCompareTuples(themePathArray);
       let fileName: string;
 
-      switch (target) {
+      switch (target.variety) {
          case 'critical':
-            fileName = `${
-               path.parse(relativeEntryPath).name
-            }.${target}.${config.target.criticalFileExtension}`;
+            fileName = `${path.parse(relativeEntryPath).name}.${
+               target.variety
+            }.${config.target.criticalFileExtension}`;
             break;
          case 'async':
-            fileName = `${
-               path.parse(relativeEntryPath).name
-            }.${target}.css`;
+            fileName = `${path.parse(relativeEntryPath).name}.${
+               target.variety
+            }.css`;
             break;
          default:
             fileName = 'style.css';

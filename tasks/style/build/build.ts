@@ -1,5 +1,6 @@
+import * as fs from 'fs';
 import path from 'path';
-import { writeFile } from '../../utility';
+import { makeDir, writeFile } from '../../utility';
 import dependencyGraph from '../graph/dependency';
 import styleLint from '../lint/lint';
 import sassBuild from '../build/sass';
@@ -14,29 +15,33 @@ import { IStyleOptions } from '../style.d';
  * -------------------------------- */
 
 async function buildStyles(options: IStyleOptions) {
-   const { target, flags, contextLog } = options;
+   const { target, contextLog } = options;
 
    try {
       let result = await dependencyGraph(options);
 
-      if ('LINT' in flags && flags.LINT) {
+      if (process.argv.includes('--lint')) {
          result = await styleLint(result);
       }
 
       result = await sassBuild(result);
       result = await postcssBuild(result);
 
-      if (target.toLowerCase() === 'critical') {
+      if (target.variety.toLowerCase() === 'critical') {
          result = await criticalEscape(result);
+      }
+
+      const { dir, name, ext } = path.parse(
+         path.relative(process.cwd(), result.output)
+      );
+
+      if (!fs.existsSync(dir)) {
+         await makeDir(dir);
       }
 
       writeFile(result.output, result.css);
 
       if (result.map) {
-         const { dir, name, ext } = path.parse(
-            path.relative(process.cwd(), result.output)
-         );
-
          writeFile(`${path.join(dir, name)}${ext}.map`, result.map);
       }
 

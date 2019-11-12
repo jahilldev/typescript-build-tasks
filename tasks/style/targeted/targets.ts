@@ -1,7 +1,7 @@
 import path from 'path';
 import globby from 'globby';
 import { nameOutput } from '../name/output';
-import { IBaseStyleOptions, EntryPointOptions } from '../style.d';
+import { EntryPointOptions, IBaseStyleOptions } from '../style.d';
 
 /* -----------------------------------
  *
@@ -12,11 +12,11 @@ import { IBaseStyleOptions, EntryPointOptions } from '../style.d';
 async function targets(
    options: IBaseStyleOptions
 ): Promise<EntryPointOptions> {
+   const { config, target } = options;
    const entryPointMap: EntryPointOptions = new Map();
-   const { target, config } = options;
    let entryGlobs: string[];
 
-   switch (target) {
+   switch (target.variety) {
       case 'critical':
          entryGlobs = config.style.entryPoints.map(glob => {
             const entryDir = path.parse(glob).dir;

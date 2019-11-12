@@ -8,11 +8,14 @@ import chalk from 'chalk';
  * -------------------------------- */
 
 function run(method: any, options?: any) {
-   const task = typeof method.default === 'undefined' ? method : method.default;
+   const task =
+      typeof method.default === 'undefined' ? method : method.default;
    const start = new Date();
 
    log.info(
-      `Running: ${chalk.blue(task.name)} ${options ? `(${options})` : ''}...`
+      `Running: ${chalk.blue(task.name)} ${
+         options ? `(${options})` : ''
+      }...`
    );
 
    return task(options).then((resolution: any) => {

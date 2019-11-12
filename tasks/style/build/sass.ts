@@ -29,13 +29,17 @@ interface IResult extends SASSResult {
 
 function sassRender(options: ISASSOptions): Promise<IResult> {
    return new Promise((resolve, reject) => {
-      sass.render(options, function(err, result) {
-         err
-            ? reject(err)
-            : resolve({
-                 ...result,
-                 fileName: this.options.outFile,
-              });
+      let result;
+
+      try {
+         result = sass.renderSync(options);
+      } catch (err) {
+         reject(err);
+      }
+
+      resolve({
+         ...result,
+         fileName: options.outFile,
       });
    });
 }
@@ -49,14 +53,14 @@ function sassRender(options: ISASSOptions): Promise<IResult> {
 async function sassBuild(
    options: IStyleOptions
 ): Promise<IStyleOptions> {
-   const { input, output, flags, config, contextLog } = options;
+   const { input, output, config, contextLog } = options;
 
    const sassOptions = {
       file: input,
       includePaths: config.scss.includePaths,
       outFile: output,
       outputStyle: config.scss.outputStyle,
-      sourceMap: 'DEBUG' in flags && flags.DEBUG,
+      sourceMap: process.argv.includes('debug'),
       functions: {
          '@debug'(msg: any) {
             contextLog(chalk`{blue ℹ  SASS Debug} ${msg.getValue()}`);
@@ -79,7 +83,7 @@ async function sassBuild(
 
       if (stats) {
          contextLog(
-            chalk`🛠  Built entry point: {yellow ${
+            chalk`🛠 Built entry point: {yellow ${
                stats.entry
             }} in {yellow ${stats.duration.toString()}}ms`
          );

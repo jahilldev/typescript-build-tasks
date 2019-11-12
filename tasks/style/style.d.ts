@@ -12,15 +12,16 @@ export type BuildStep = (
    options: IStyleOptions
 ) => Promise<IStyleOptions>;
 
-export interface IFlags {
-   [key: string]: boolean;
+export interface ITarget {
+   variety: 'default' | 'async' | 'critical';
+   colour: string;
+   background: string;
 }
 
 export interface IBaseStyleOptions {
-   target: 'default' | 'async' | 'critical';
-   flags: IFlags;
    config: IConfig;
-   contextLog: ContextLogger;
+   target: ITarget;
+   readonly contextLog: ContextLogger;
 }
 
 export interface IStyleOptions extends IBaseStyleOptions {

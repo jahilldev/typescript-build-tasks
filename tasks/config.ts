@@ -1,4 +1,3 @@
-import { Plugin } from 'postcss';
 import autoprefixer from 'autoprefixer';
 import cssnano from 'cssnano';
 import hash from 'postcss-hash';
@@ -45,7 +44,6 @@ interface ISASSConfig {
 }
 
 interface IPostCSSPluginConfig {
-   /* TODO: figure out a signature for this that makes sense */
    transformer: any;
    conditionals?: Set<'DEBUG' | 'LINT' | 'RELEASE' | 'WATCH'>;
    options: {
