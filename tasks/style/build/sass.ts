@@ -1,3 +1,4 @@
+import path from 'path';
 import sass, { Result as SASSResult } from 'node-sass';
 import chalk from 'chalk';
 import { IStyleOptions } from '../style.d';
@@ -71,7 +72,9 @@ async function sassBuild(
             return sass.NULL;
          },
          '@warn'(msg: any) {
-            contextLog(chalk`{yellow ⚠ SASS Warn} ${msg.getValue()}`);
+            contextLog(
+               chalk`{yellow ⚠  SASS Warn} ${msg.getValue()}`
+            );
             return sass.NULL;
          },
       },
@@ -82,10 +85,21 @@ async function sassBuild(
       const { css, stats, map, fileName } = result;
 
       if (stats) {
+         const entryPoint = path.relative(
+            path.resolve(process.cwd(), config.path.style),
+            stats.entry
+         );
+         const duration = stats.duration;
+         let durationColour = 'greenBright';
+
+         if (duration >= 25) {
+            durationColour =
+               duration >= 50 ? 'redBright' : 'yellowBright';
+         }
+
          contextLog(
-            chalk`🛠 Built entry point: {yellow ${
-               stats.entry
-            }} in {yellow ${stats.duration.toString()}}ms`
+            chalk`🛠 Built SASS entry point:{yellow ${entryPoint}} in {${durationColour} %dms}`,
+            duration
          );
       }
 
@@ -98,7 +112,7 @@ async function sassBuild(
 
       return options;
    } catch (err) {
-      contextLog(err);
+      contextLog(err.message, err.stack);
    }
 }
 

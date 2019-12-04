@@ -1,7 +1,8 @@
+@import '../../../../functions/colour';
 @import './sub-component';
 
 .component {
-   color: #090;
+   color: colour('green');
 }
 
 @debug 'Touches `component.scss`';

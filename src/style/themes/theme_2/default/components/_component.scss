@@ -1,0 +1,7 @@
+@import '../../../../functions/colour';
+
+.theme_2-component {
+   color: colour('dark-pink');
+}
+
+@debug 'Touches `theme_2` `_component.scss`';

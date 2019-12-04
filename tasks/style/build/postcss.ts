@@ -21,7 +21,7 @@ async function postcssBuild(
       },
    };
 
-   const plugins = config.postcss.plugins.reduce(
+   const plugins = config.postcss.reduce(
       (pluginList, currentPlugin) => {
          const {
             transformer,
@@ -49,7 +49,6 @@ async function postcssBuild(
          css: resultCSS,
          map: resultMap,
          messages,
-         opts: { to: fileName },
       } = await processor.process(css.toString(), postcssOptions);
 
       if (messages) {
@@ -60,13 +59,12 @@ async function postcssBuild(
 
       Object.assign(options, {
          css: resultCSS,
-         fileName,
          map: resultMap && resultMap.toString(),
       });
 
       return options;
    } catch (err) {
-      contextLog(err);
+      contextLog(err.message, err.stack);
    }
 }
 

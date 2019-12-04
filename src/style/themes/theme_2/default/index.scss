@@ -1,0 +1,8 @@
+@import '../../../functions/colour';
+@import './components/component';
+
+.theme_2-index {
+   color: colour('light-blue');
+}
+
+@debug 'Touches `theme_2` `index.scss`';

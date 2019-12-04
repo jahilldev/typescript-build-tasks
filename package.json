@@ -36,7 +36,7 @@
       "@types/webpack": "^4.4.24",
       "autoprefixer": "^9.6.1",
       "chalk": "^2.4.2",
-      "chokidar": "^2.1.5",
+      "chokidar": "^3.3.0",
       "cssnano": "^4.1.10",
       "cssnano-preset-default": "^4.0.7",
       "del": "^3.0.0",

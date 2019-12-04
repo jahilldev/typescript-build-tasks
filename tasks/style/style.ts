@@ -1,114 +1,247 @@
-import chalk from 'chalk';
+import path from 'path';
 import log from 'fancy-log';
-import { IConfig } from '../config';
-import targets from './targeted/targets';
+import chalk from 'chalk';
+import {
+   config as defaultConfig,
+   IConfig as IBuildConfig,
+} from '../config';
+import { targets, Target, ITargetConfig } from '../targets';
+import { addLoggerContext } from '../utility';
+import entryPointGenerator from './targeted/entryPoints';
 import buildStyles from './build/build';
 import styleWatch from './watch/watch';
-import { IBaseStyleOptions, ITarget, Builds } from './style.d';
+import {
+   ContextLogger,
+   IStyleOptions,
+   IBuildResult,
+} from './style.d';
 
 /* -----------------------------------
  *
- * Default Target
+ * Interfaces
  *
  * -------------------------------- */
 
-const defaultTarget: ITarget = {
-   variety: 'default',
-   colour: 'black',
-   background: 'bgWhite',
-};
+interface ITargeter {
+   target: Target;
+   targetConfig?: ITargetConfig;
+}
+
+interface IBuilder extends ITargeter {
+   buildConfig?: IBuildConfig;
+   contextLog: ContextLogger;
+}
+
+interface IConfig {
+   customTarget: Target;
+   customTargetConfig?: ITargetConfig;
+   customBuildConfig?: IBuildConfig;
+}
 
 /* -----------------------------------
  *
- * Critical Target
+ * Targeter
  *
  * -------------------------------- */
 
-const criticalTarget: ITarget = {
-   variety: 'critical',
-   colour: 'black',
-   background: 'bgMagenta',
-};
+function targeter({ target, targetConfig }: ITargeter) {
+   const configuredTargetConfig = Object.assign(
+      targets.get(target),
+      targetConfig
+   );
+   const [fg, bg] = configuredTargetConfig.colour;
+   const targetLogger = addLoggerContext(log, target, fg, bg);
+
+   return {
+      targetConfig: configuredTargetConfig,
+      contextLog: targetLogger,
+   };
+}
 
 /* -----------------------------------
  *
- * Async Target
+ * Configurator
  *
  * -------------------------------- */
 
-const asyncTarget: ITarget = {
-   variety: 'async',
-   colour: 'black',
-   background: 'bgCyan',
-};
+async function configurator(buildConfig: IBuildConfig) {
+   const configuredBuildConfig = Object.assign(
+      defaultConfig,
+      buildConfig
+   );
+
+   return configuredBuildConfig;
+}
 
 /* -----------------------------------
  *
- * Style Builder
+ * Builder
  *
  * -------------------------------- */
 
-async function styleBuilder(styleOptions: IBaseStyleOptions) {
-   const { contextLog } = styleOptions;
-   const builds: Builds = new Map();
+function builder({
+   target,
+   targetConfig,
+   buildConfig,
+   contextLog,
+}: IBuilder) {
+   return buildEntryPoint;
+   async function buildEntryPoint(
+      theme: string,
+      entryPoint: string
+   ): Promise<IBuildResult> {
+      const buildStart = process.hrtime();
+      const themeTargetLogger = addLoggerContext(
+         contextLog,
+         theme,
+         'black',
+         'bgWhite'
+      );
+      const { name } = path.parse(entryPoint);
+      const output = path.resolve(
+         buildConfig.path.dist,
+         `${theme}-${name}.${target}.${targetConfig.extension}`
+      );
+      let buildResult: IStyleOptions;
 
-   try {
-      const entryPoints = await targets(styleOptions);
+      try {
+         buildResult = await buildStyles(target, {
+            config: buildConfig,
+            contextLog: themeTargetLogger,
+            input: entryPoint,
+            output,
+         });
+      } catch (err) {
+         themeTargetLogger(err);
+      } finally {
+         const [seconds, nanoseconds] = process.hrtime(buildStart);
+         const milliseconds = nanoseconds * Math.pow(10, -6);
+         let durationColour = 'greenBright';
 
-      if (entryPoints.size) {
-         for (const [entryPoint, options] of entryPoints) {
-            const result = await buildStyles(options);
-
-            builds.set(entryPoint, {
-               ...result,
-               build: buildStyles,
-            });
+         if (seconds < 1) {
+            if (milliseconds > 500) {
+               durationColour = 'yellowBright';
+            }
+         } else {
+            durationColour = 'redBright';
          }
+
+         themeTargetLogger(
+            chalk`🏁 Build completed: {yellow ${path.relative(
+               process.cwd(),
+               output
+            )}} in {${durationColour} %ds %dms}`,
+            seconds,
+            milliseconds.toFixed(3)
+         );
       }
-   } catch (err) {
-      contextLog(err);
+
+      return {
+         contextLog: themeTargetLogger,
+         dependencyGraph: buildResult.dependencyGraph,
+         entryPoint: buildResult.input,
+         target,
+         theme,
+      };
+   }
+}
+
+/* -----------------------------------
+ *
+ * Build Generator
+ *
+ * -------------------------------- */
+
+async function* buildGenerator(
+   buildEntryPoint: (
+      theme: string,
+      entryPoint: string
+   ) => Promise<IBuildResult>
+): AsyncGenerator<IBuildResult, IBuildResult, [string, string]> {
+   let build = yield;
+   let theme;
+   let entryPoint;
+
+   while (build) {
+      [theme, entryPoint] = build;
+
+      build = yield buildEntryPoint(theme, entryPoint);
    }
 
-   return Promise.all(builds)
-      .catch(err => {
-         contextLog(err);
-      })
-      .then(() => {
-         if (process.argv.includes('--watch')) {
-            styleWatch(builds);
-         } else {
-            process.exitCode = 0;
-         }
-      });
+   return buildEntryPoint(theme, entryPoint);
 }
 
 /* -----------------------------------
  *
- * Style
+ * Orchestrator
  *
  * -------------------------------- */
 
-function style(target: ITarget) {
-   return (config: IConfig) =>
-      styleBuilder({
-         config,
-         target,
-         get contextLog() {
-            const { background, colour, variety } = this.target;
-            const label = chalk`{${colour}.bold.${background}  ${variety.toUpperCase()} }`;
+async function orchestrator({
+   customTarget,
+   customTargetConfig,
+   customBuildConfig,
+}: IConfig) {
+   const targeted = targeter({
+      target: customTarget,
+      targetConfig: customTargetConfig,
+   });
+   const buildConfig = await configurator(customBuildConfig);
+   const entryPointIterator = entryPointGenerator(
+      buildConfig.path.style,
+      customTarget,
+      targeted.targetConfig
+   );
+   const buildEntryPoint = builder({
+      target: customTarget,
+      buildConfig,
+      ...targeted,
+   });
+   const buildIterator = buildGenerator(buildEntryPoint);
+   let result: IteratorResult<[string, string]>;
+   let buildResult: IteratorResult<IBuildResult>;
 
-            return (...messages: any[]) => {
-               for (const message of messages) {
-                  log(label, message);
-               }
-            };
-         },
-      });
+   do {
+      try {
+         buildResult = await buildIterator.next(
+            result && result.value
+         );
+      } catch (err) {
+         targeted.contextLog(err.message, err.stack);
+      }
+
+      if (
+         process.argv.includes('--watch') &&
+         !buildResult.done &&
+         buildResult.value
+      ) {
+         styleWatch(
+            buildIterator,
+            buildResult.value,
+            buildConfig.path.style
+         );
+      }
+
+      try {
+         result = await entryPointIterator.next();
+      } catch (err) {
+         targeted.contextLog(err.message, err.stack);
+      }
+   } while (!result.done);
 }
 
-const asyncStyle = style(asyncTarget);
-const criticalStyle = style(criticalTarget);
-const defaultStyle = style(defaultTarget);
+/* -----------------------------------
+ *
+ * Builders
+ *
+ * -------------------------------- */
+
+const asyncStyleBuilder = (customBuildConfig?: IBuildConfig) =>
+   orchestrator({ customTarget: 'async', customBuildConfig });
+const criticalStyleBuilder = (customBuildConfig?: IBuildConfig) =>
+   orchestrator({ customTarget: 'critical', customBuildConfig });
+const defaultStyleBuilder = (customBuildConfig?: IBuildConfig) =>
+   orchestrator({ customTarget: 'default', customBuildConfig });
 
 /* -----------------------------------
  *
@@ -116,4 +249,8 @@ const defaultStyle = style(defaultTarget);
  *
  * -------------------------------- */
 
-export { asyncStyle, criticalStyle, defaultStyle };
+export {
+   asyncStyleBuilder,
+   criticalStyleBuilder,
+   defaultStyleBuilder,
+};

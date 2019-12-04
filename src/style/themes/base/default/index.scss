@@ -1,0 +1,11 @@
+@import '../../../functions/colour';
+@import './components/component';
+
+.index {
+   border: 1px solid colour('terracotta');
+   color: colour('red');
+   display: inline-block;
+   user-select: none;
+}
+
+@debug 'Touches `index.scss`';

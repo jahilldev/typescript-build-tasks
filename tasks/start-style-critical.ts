@@ -1,6 +1,6 @@
 import run from './run';
 import { config } from './config';
-import { criticalStyle } from './style/style';
+import { criticalStyleBuilder } from './style/style';
 
 /* -----------------------------------
  *
@@ -9,7 +9,7 @@ import { criticalStyle } from './style/style';
  * -------------------------------- */
 
 async function startCriticalStyle() {
-   await run(criticalStyle, config);
+   await run(criticalStyleBuilder, config);
 }
 
 /* -----------------------------------

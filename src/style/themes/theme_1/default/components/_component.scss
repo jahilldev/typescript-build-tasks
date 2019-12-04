@@ -1,0 +1,9 @@
+@import '../../../../functions/colour';
+@import './unreferenced-component';
+
+.theme_1-component {
+   color: colour('orange');
+   background-color: colour('purple');
+}
+
+@debug 'Touches `theme_1` `_component.scss`';

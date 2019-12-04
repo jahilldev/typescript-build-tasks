@@ -1,7 +1,8 @@
 import * as fs from 'fs';
 import path from 'path';
+import { Target } from '../../targets';
 import { makeDir, writeFile } from '../../utility';
-import dependencyGraph from '../graph/dependency';
+import { entryPointDependencies } from '../graph/dependency';
 import styleLint from '../lint/lint';
 import sassBuild from '../build/sass';
 import postcssBuild from '../build/postcss';
@@ -14,11 +15,21 @@ import { IStyleOptions } from '../style.d';
  *
  * -------------------------------- */
 
-async function buildStyles(options: IStyleOptions) {
-   const { target, contextLog } = options;
+async function buildStyles(
+   target: Target,
+   options: IStyleOptions
+): Promise<IStyleOptions> {
+   const { input, config, contextLog } = options;
 
    try {
-      let result = await dependencyGraph(options);
+      let result = {
+         dependencyGraph: await entryPointDependencies(
+            input,
+            config.dependency,
+            contextLog
+         ),
+         ...options,
+      } as IStyleOptions;
 
       if (process.argv.includes('--lint')) {
          result = await styleLint(result);
@@ -27,7 +38,7 @@ async function buildStyles(options: IStyleOptions) {
       result = await sassBuild(result);
       result = await postcssBuild(result);
 
-      if (target.variety.toLowerCase() === 'critical') {
+      if (target.toLowerCase() === 'critical') {
          result = await criticalEscape(result);
       }
 
@@ -47,7 +58,7 @@ async function buildStyles(options: IStyleOptions) {
 
       return result;
    } catch (err) {
-      contextLog(err);
+      contextLog(err.message, err.stack);
    }
 }
 

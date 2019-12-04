@@ -1,0 +1,7 @@
+@import '../../../functions/colour';
+
+.theme_1-index {
+   color: colour('blue');
+}
+
+@debug 'Touches `theme_1` `index.scss`';

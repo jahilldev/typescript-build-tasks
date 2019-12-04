@@ -1,0 +1,8 @@
+@import '../../../../functions/colour';
+
+.theme_3-component {
+   color: colour('light-green');
+   user-select: none;
+}
+
+@debug 'Touches `theme_3` `_component.scss`';

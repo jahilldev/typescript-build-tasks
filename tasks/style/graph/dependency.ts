@@ -3,10 +3,11 @@ import postcss, { ResultMessage } from 'postcss';
 import scss from 'postcss-scss';
 import atImport from 'postcss-easy-import';
 import chalk from 'chalk';
+import { IDependencyConfig } from '../../config';
 import {
    ContextLogger,
    DependencyGraph,
-   IStyleOptions,
+   IDependencies,
 } from '../style.d';
 
 /* -----------------------------------
@@ -16,56 +17,37 @@ import {
  * -------------------------------- */
 
 function dependencyHandler(
+   entryPoint: string,
    message: ResultMessage,
    graph: DependencyGraph
 ) {
    if (!graph.has(message.file)) {
       graph.set(message.file, {
-         imports: [],
-         importedBy: [],
+         entryPoints: new Set([entryPoint]),
+         imports: new Set([]),
+         importedBy: new Set([]),
       });
    }
 
-   if (!graph.get(message.file).importedBy.includes(message.parent)) {
-      graph.get(message.file).importedBy.push(message.parent);
-   }
+   graph.get(message.file).importedBy.add(message.parent);
+   graph.get(message.parent).imports.add(message.file);
 
-   if (graph.has(message.parent)) {
-      graph.get(message.parent).imports.push(message.file);
-   } else {
+   if (!graph.has(message.parent)) {
       graph.set(message.parent, {
-         imports: [],
-         importedBy: [],
+         entryPoints: new Set([entryPoint]),
+         imports: new Set([]),
+         importedBy: new Set([]),
       });
    }
 
-   if (!graph.get(message.parent).imports.includes(message.file)) {
-      graph.get(message.parent).imports.push(message.file);
-   }
+   graph.get(message.parent).imports.add(message.file);
 }
 
 function warningHandler(
    message: ResultMessage,
    contextLog: ContextLogger
 ) {
-   contextLog(chalk`{bgYellow.black ⚠ ${message.type.toUpperCase()}} from {green ${
-      message.plugin
-   }}:
-   {bold.blue location:}
-      {bold.blueBright file:} {yellow ${
-         message.node.source.input.file
-      }}
-      {bold.blueBright line:} ${message.line}
-      {bold.blueBright column)} ${message.column}
-   {bold.blue message:} ${message.text}
-   `);
-}
-
-function errorHandler(
-   message: ResultMessage,
-   contextLog: ContextLogger
-) {
-   contextLog(chalk`{bgRed.black ❌ ${message.type.toUpperCase()} from {green ${
+   contextLog(chalk`{bgYellow.black  ⚠  ${message.type.toUpperCase()} } from {green ${
       message.plugin
    }}:
    {bold.blue location:}
@@ -78,17 +60,35 @@ function errorHandler(
    `);
 }
 
-export function postCSSMessageHandler(
-   input: string,
+function errorHandler(
+   message: ResultMessage,
+   contextLog: ContextLogger
+) {
+   contextLog(chalk`{bgRed.black  ❌ ${message.type.toUpperCase()} } from {green ${
+      message.plugin
+   }}:
+   {bold.blue location:}
+      {bold.blueBright file:} {yellow ${
+         message.node.source.input.file
+      }}
+      {bold.blueBright line:} ${message.line}
+      {bold.blueBright column:} ${message.column}
+   {bold.blue message:} ${message.text}
+   `);
+}
+
+function postCSSMessageHandler(
+   entryPoint: string,
    messages: ResultMessage[],
    contextLog: ContextLogger
 ) {
    const importDependencies: DependencyGraph = new Map([
       [
-         input,
+         entryPoint,
          {
-            imports: [],
-            importedBy: [],
+            entryPoints: new Set([entryPoint]),
+            imports: new Set([]),
+            importedBy: new Set([]),
          },
       ],
    ]);
@@ -96,7 +96,11 @@ export function postCSSMessageHandler(
    for (const message of messages) {
       switch (message.type) {
          case 'dependency':
-            dependencyHandler(message, importDependencies);
+            dependencyHandler(
+               entryPoint,
+               message,
+               importDependencies
+            );
             break;
          case 'warning':
             warningHandler(message, contextLog);
@@ -115,32 +119,25 @@ export function postCSSMessageHandler(
    return importDependencies;
 }
 
-async function dependencyGraph(
-   options: IStyleOptions
-): Promise<IStyleOptions> {
-   const { input, output, config, contextLog } = options;
-
+async function entryPointDependencies(
+   entryPoint: string,
+   dependencyConfig: IDependencyConfig,
+   contextLog: ContextLogger
+): Promise<Map<string, IDependencies>> {
    try {
       const postcssOptions = {
-         from: input,
-         to: output,
+         from: entryPoint,
          syntax: scss,
       };
-      const scssEntry = fs.readFileSync(input, 'utf8');
+      const scssEntry = fs.readFileSync(entryPoint, 'utf8');
 
       const { messages } = await postcss()
-         .use(atImport(config.dependency))
+         .use(atImport(dependencyConfig))
          .process(scssEntry, postcssOptions);
 
-      options.dependencies = postCSSMessageHandler(
-         input,
-         messages,
-         contextLog
-      );
-
-      return options;
+      return postCSSMessageHandler(entryPoint, messages, contextLog);
    } catch (err) {
-      contextLog(err);
+      contextLog(err.message, err.stack);
    }
 }
 
@@ -150,4 +147,4 @@ async function dependencyGraph(
  *
  * -------------------------------- */
 
-export default dependencyGraph;
+export { entryPointDependencies };

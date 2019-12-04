@@ -1,0 +1,8 @@
+@import '../../../functions/colour';
+@import './components/component';
+
+.theme_3-index {
+   color: colour('yellow');
+}
+
+@debug 'Touches `theme_3` `index.scss`';

@@ -1,6 +1,5 @@
 import run from './run';
-import { config } from './config';
-import { defaultStyle } from './style/style';
+import { defaultStyleBuilder } from './style/style';
 
 /* -----------------------------------
  *
@@ -9,7 +8,7 @@ import { defaultStyle } from './style/style';
  * -------------------------------- */
 
 async function startStyle() {
-   await run(defaultStyle, config);
+   await run(defaultStyleBuilder);
 }
 
 /* -----------------------------------

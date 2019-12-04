@@ -4,31 +4,20 @@ import hash from 'postcss-hash';
 
 /* -----------------------------------
  *
- * Interfaces
+ * Config Interfaces
  *
  * -------------------------------- */
 
 interface IPathConfig {
    dist: string;
+   script: string;
    src: string;
-}
-
-interface IStyleConfig {
-   entryPoints: string[];
-   styleDir: string | RegExp;
-   themesDir: string | RegExp;
+   style: string;
 }
 
 interface IDependencyConfig {
    prefix: string;
    extensions: string[];
-}
-
-interface ITargetConfig {
-   targetDir: string;
-   asyncGlob: string;
-   criticalGlob: string;
-   criticalFileExtension: string;
 }
 
 interface ILintConfig {
@@ -51,18 +40,12 @@ interface IPostCSSPluginConfig {
    };
 }
 
-interface IPostCSSConfig {
-   plugins: IPostCSSPluginConfig[];
-}
-
 interface IConfig {
-   path: IPathConfig;
-   dependency: IDependencyConfig;
-   target?: ITargetConfig;
-   lint: ILintConfig;
-   style: IStyleConfig;
-   scss: ISASSConfig;
-   postcss: IPostCSSConfig;
+   path?: IPathConfig;
+   dependency?: IDependencyConfig;
+   lint?: ILintConfig;
+   scss?: ISASSConfig;
+   postcss?: IPostCSSPluginConfig[];
 }
 
 /* -----------------------------------
@@ -73,19 +56,14 @@ interface IConfig {
 
 const path: IPathConfig = {
    dist: './dist/',
+   script: './src/script/',
    src: './src/',
+   style: './src/style/',
 };
 
 const dependency: IDependencyConfig = {
    prefix: '_',
    extensions: ['.scss'],
-};
-
-const target: ITargetConfig = {
-   targetDir: 'client',
-   asyncGlob: './async/[^_]*.scss',
-   criticalGlob: './critical/[^_]*.scss',
-   criticalFileExtension: 'cshtml',
 };
 
 const lint: ILintConfig = {
@@ -95,52 +73,39 @@ const lint: ILintConfig = {
    syntax: 'scss',
 };
 
-const style: IStyleConfig = {
-   entryPoints: [
-      './src/style/index.scss',
-      './src/style/themes/**/[^_]*.scss',
-   ],
-   styleDir: new RegExp(/^style[s]?$/, 'i'),
-   themesDir: new RegExp(/^theme[s]?$/, 'i'),
-};
-
 const scss: ISASSConfig = {
-   includePaths: ['./src/style/'],
+   includePaths: [path.style],
    outputStyle: 'expanded',
 };
 
-const postcss: IPostCSSConfig = {
-   plugins: [
-      {
-         transformer: autoprefixer,
-         options: {
-            cascade: false,
-         },
+const postcss: IPostCSSPluginConfig[] = [
+   {
+      transformer: autoprefixer,
+      options: {
+         cascade: false,
       },
-      {
-         transformer: cssnano,
-         options: {
-            preset: ['default'],
-         },
+   },
+   {
+      transformer: cssnano,
+      options: {
+         preset: ['default'],
       },
-      {
-         transformer: hash,
-         conditionals: new Set(['RELEASE']),
-         options: {
-            algorithm: 'md5',
-            trim: 10,
-            manifest: './dist/assets.json',
-         },
+   },
+   {
+      transformer: hash,
+      conditionals: new Set(['RELEASE']),
+      options: {
+         algorithm: 'md5',
+         trim: 10,
+         manifest: `${path.dist}assets.json`,
       },
-   ],
-};
+   },
+];
 
 const config: IConfig = {
    path,
    dependency,
-   target,
    lint,
-   style,
    scss,
    postcss,
 };
@@ -151,4 +116,4 @@ const config: IConfig = {
  *
  * -------------------------------- */
 
-export { config, IConfig };
+export { IConfig, IDependencyConfig, config };

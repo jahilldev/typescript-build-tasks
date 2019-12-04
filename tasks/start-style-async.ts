@@ -1,6 +1,6 @@
 import run from './run';
 import { config } from './config';
-import { asyncStyle } from './style/style';
+import { asyncStyleBuilder } from './style/style';
 
 /* -----------------------------------
  *
@@ -9,7 +9,7 @@ import { asyncStyle } from './style/style';
  * -------------------------------- */
 
 async function startAsyncStyle() {
-   await run(asyncStyle, config);
+   await run(asyncStyleBuilder, config);
 }
 
 /* -----------------------------------

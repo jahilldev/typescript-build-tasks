@@ -11,7 +11,7 @@ import targetedStyle from './style/targeted';
 
 async function startStyle() {
    await run(clean);
-   await run(targetedStyle, config);
+   await run(targetedStyle);
 }
 
 /* -----------------------------------

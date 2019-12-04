@@ -8,12 +8,12 @@ import { IStyleOptions } from '../style.d';
  * -------------------------------- */
 
 async function lint(options: IStyleOptions): Promise<IStyleOptions> {
-   const { dependencies, config, contextLog } = options;
+   const { dependencyGraph, config, contextLog } = options;
 
    try {
       const lintOptions = {
          ...config.lint,
-         files: [...dependencies.keys()],
+         files: [...dependencyGraph.keys()],
       } as LinterOptions;
 
       const result = await stylelint.lint(lintOptions);
@@ -30,7 +30,7 @@ async function lint(options: IStyleOptions): Promise<IStyleOptions> {
          'Stylelint found errors, please resolve errors listed above.'
       );
    } catch (err) {
-      contextLog(err);
+      contextLog(err.message, err.stack);
    }
 }
 

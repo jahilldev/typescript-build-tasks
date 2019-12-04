@@ -1,0 +1,11 @@
+@import '../variables/colours';
+
+@function colour($colourName) {
+   @if map-has-key($colours, $colourName) {
+      @return map-get($colours, $colourName);
+   }
+
+   @else {
+      @error 'No colour declaration found for #{$colourName} in #{$colours}';
+   }
+}

@@ -1,6 +1,10 @@
 import log from 'fancy-log';
 import { IConfig } from '../config';
-import { asyncStyle, criticalStyle, defaultStyle } from './style';
+import {
+   asyncStyleBuilder,
+   criticalStyleBuilder,
+   defaultStyleBuilder,
+} from './style';
 
 /* -----------------------------------
  *
@@ -11,9 +15,9 @@ import { asyncStyle, criticalStyle, defaultStyle } from './style';
 async function targetedStyle(config: IConfig) {
    try {
       await Promise.all([
-         defaultStyle(config),
-         criticalStyle(config),
-         asyncStyle(config),
+         defaultStyleBuilder(config),
+         criticalStyleBuilder(config),
+         asyncStyleBuilder(config),
       ]);
    } catch (err) {
       return log.error(err);

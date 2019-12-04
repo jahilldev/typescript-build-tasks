@@ -1,0 +1,8 @@
+.critical-styles {
+   cursor: not-allowed;
+   user-select: text;
+
+   &::after {
+      content: 'hello';
+   }
+}
